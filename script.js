@@ -3,32 +3,41 @@ let salesChart;
 let categoryChart;
 let currentTheme = localStorage.getItem("theme") || "dark";
 
-setupCSVUpload();
-
 document.addEventListener("DOMContentLoaded", () => {
     applySavedTheme();
+    setupThemeToggle();
+    setupCSVUpload();
+    setupSidebarNavigation();
+    setupExportPDF();
+    loadDefaultCSV();
 });
 
-// Load CSV
-Papa.parse("data/sales-data.csv", {
-    download: true,
-    header: true,
-    complete: function(results) {
-        salesData = results.data.filter(row => row.order_id);
+function loadDefaultCSV() {
+    Papa.parse("data/sales-data.csv", {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+            salesData = results.data.filter(row => row.order_id);
+            renderDashboard(salesData);
+            setupFilters();
+        }
+    });
+}
 
-        populateCategoryFilter(salesData);
-        displayTable(salesData);
-        updateDashboard(salesData);
-        createCharts(salesData);
-        generateInsights(salesData);
-        generateTopCustomers(salesData);
-        setupFilters();
-        setupThemeToggle();
-    }
-});
+function renderDashboard(data) {
+    populateCategoryFilter(salesData);
+    displayTable(data);
+    updateDashboard(data);
+    createCharts(data);
+    generateInsights(data);
+    generateTopCustomers(data);
+}
 
 function setupThemeToggle() {
     const themeToggle = document.getElementById("themeToggle");
+
+    if (!themeToggle) return;
 
     themeToggle.addEventListener("click", () => {
         currentTheme = currentTheme === "dark" ? "light" : "dark";
@@ -57,6 +66,13 @@ function applySavedTheme() {
     }
 }
 
+function setupFilters() {
+    document.getElementById("categoryFilter").addEventListener("change", applyFilters);
+    document.getElementById("searchInput").addEventListener("input", applyFilters);
+    document.getElementById("startDate").addEventListener("change", applyFilters);
+    document.getElementById("endDate").addEventListener("change", applyFilters);
+}
+
 function getFilteredData() {
     const selectedCategory = document.getElementById("categoryFilter").value;
     const searchKeyword = document.getElementById("searchInput").value.toLowerCase();
@@ -83,8 +99,19 @@ function getFilteredData() {
     });
 }
 
+function applyFilters() {
+    const filteredData = getFilteredData();
+
+    displayTable(filteredData);
+    updateDashboard(filteredData);
+    createCharts(filteredData);
+    generateInsights(filteredData);
+    generateTopCustomers(filteredData);
+}
+
 function populateCategoryFilter(data) {
     const categoryFilter = document.getElementById("categoryFilter");
+    const currentValue = categoryFilter.value || "All";
     const categories = [...new Set(data.map(row => row.category))];
 
     categoryFilter.innerHTML = `<option value="All">All Categories</option>`;
@@ -94,23 +121,8 @@ function populateCategoryFilter(data) {
             <option value="${category}">${category}</option>
         `;
     });
-}
 
-function setupFilters() {
-    document.getElementById("categoryFilter").addEventListener("change", applyFilters);
-    document.getElementById("searchInput").addEventListener("input", applyFilters);
-    document.getElementById("startDate").addEventListener("change", applyFilters);
-    document.getElementById("endDate").addEventListener("change", applyFilters);
-}
-
-function applyFilters() {
-    const filteredData = getFilteredData();
-
-    displayTable(filteredData);
-    updateDashboard(filteredData);
-    createCharts(filteredData);
-    generateInsights(filteredData);
-    generateTopCustomers(filteredData);
+    categoryFilter.value = categories.includes(currentValue) ? currentValue : "All";
 }
 
 function displayTable(data) {
@@ -334,151 +346,130 @@ function generateInsights(data) {
     });
 }
 
-function setupCSVUpload() {
+function generateTopCustomers(data) {
+    const topCustomersList = document.getElementById("topCustomersList");
+    topCustomersList.innerHTML = "";
 
+    if (data.length === 0) {
+        topCustomersList.innerHTML = `
+            <div class="customer-rank">
+                <div class="customer-name">No customer data</div>
+                <div class="customer-revenue">Rp 0</div>
+            </div>
+        `;
+        return;
+    }
+
+    const customerRevenue = {};
+
+    data.forEach(row => {
+        customerRevenue[row.customer] =
+            (customerRevenue[row.customer] || 0) + Number(row.amount);
+    });
+
+    const sortedCustomers = Object.entries(customerRevenue)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+
+    sortedCustomers.forEach((customer, index) => {
+        const [name, revenue] = customer;
+
+        topCustomersList.innerHTML += `
+            <div class="customer-rank">
+                <div class="customer-name">#${index + 1} ${name}</div>
+                <div class="customer-revenue">Rp ${revenue.toLocaleString()}</div>
+            </div>
+        `;
+    });
+}
+
+function setupCSVUpload() {
     const csvUpload = document.getElementById("csvUpload");
 
-    csvUpload.addEventListener("change", function(event) {
+    if (!csvUpload) return;
 
+    csvUpload.addEventListener("change", function(event) {
         const file = event.target.files[0];
 
         if (!file) return;
 
         Papa.parse(file, {
-
             header: true,
-
             skipEmptyLines: true,
-
             complete: function(results) {
-
                 salesData = results.data.filter(row => row.order_id);
 
-                populateCategoryFilter(salesData);
+                document.getElementById("startDate").value = "";
+                document.getElementById("endDate").value = "";
+                document.getElementById("searchInput").value = "";
 
-                displayTable(salesData);
-
-                updateDashboard(salesData);
-
-                createCharts(salesData);
-
-                generateInsights(salesData);
-
+                renderDashboard(salesData);
             }
-
         });
-
     });
-
 }
 
-function generateTopCustomers(data) {
+function setupExportPDF() {
+    const exportPDF = document.getElementById("exportPDF");
 
-    const topCustomersList =
-        document.getElementById("topCustomersList");
+    if (!exportPDF) return;
 
-    topCustomersList.innerHTML = "";
-
-    if(data.length === 0) {
-        return;
-    }
-
-    // Calculate Revenue Per Customer
-    const customerRevenue = {};
-
-    data.forEach(row => {
-
-        customerRevenue[row.customer] =
-            (customerRevenue[row.customer] || 0)
-            + Number(row.amount);
-
-    });
-
-    // Convert to array
-    const sortedCustomers =
-        Object.entries(customerRevenue)
-
-        .sort((a, b) => b[1] - a[1])
-
-        .slice(0, 5);
-
-    // Render
-    sortedCustomers.forEach((customer, index) => {
-
-        const [name, revenue] = customer;
-
-        topCustomersList.innerHTML += `
-            <div class="customer-rank">
-
-                <div class="customer-name">
-                    #${index + 1} ${name}
-                </div>
-
-                <div class="customer-revenue">
-                    Rp ${revenue.toLocaleString()}
-                </div>
-
-            </div>
-        `;
-    });
-
+    exportPDF.addEventListener("click", exportDashboardPDF);
 }
-
-// Export Dashboard to PDF
-document.getElementById("exportPDF").addEventListener("click", exportDashboardPDF);
 
 async function exportDashboardPDF() {
+    const dashboard = document.querySelector(".main-content");
 
-    const dashboard =
-        document.querySelector(".main-content");
+    const canvas = await html2canvas(dashboard, {
+        scale: 2,
+        useCORS: true
+    });
 
-    const canvas =
-        await html2canvas(dashboard, {
-            scale: 2
-        });
-
-    const imgData =
-        canvas.toDataURL("image/png");
+    const imgData = canvas.toDataURL("image/png");
 
     const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF("p", "mm", "a4");
 
-    const pdf =
-        new jsPDF("p", "mm", "a4");
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
 
-    const pdfWidth =
-        pdf.internal.pageSize.getWidth();
+    const imgWidth = pdfWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-    const pdfHeight =
-        (canvas.height * pdfWidth) / canvas.width;
+    let heightLeft = imgHeight;
+    let position = 0;
 
-    pdf.addImage(
-        imgData,
-        "PNG",
-        0,
-        0,
-        pdfWidth,
-        pdfHeight
-    );
+    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+    heightLeft -= pdfHeight;
+
+    while (heightLeft > 0) {
+        position -= pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
+    }
 
     pdf.save("dashboard-report.pdf");
 }
- // Sidebar Navigation
-document.querySelectorAll(".sidebar ul li").forEach(item => {
-    item.addEventListener("click", () => {
-        const targetId = item.getAttribute("data-target");
-        const targetSection = document.getElementById(targetId);
 
-        if (targetSection) {
-            targetSection.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
+function setupSidebarNavigation() {
+    document.querySelectorAll(".sidebar ul li").forEach(item => {
+        item.addEventListener("click", () => {
+            const targetId = item.getAttribute("data-target");
+            const targetSection = document.getElementById(targetId);
+
+            if (targetSection) {
+                targetSection.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+            }
+
+            document.querySelectorAll(".sidebar ul li").forEach(li => {
+                li.classList.remove("active");
             });
-        }
 
-        document.querySelectorAll(".sidebar ul li").forEach(li => {
-            li.classList.remove("active");
+            item.classList.add("active");
         });
-
-        item.classList.add("active");
     });
-});
+}
