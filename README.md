@@ -8,7 +8,7 @@ This project was developed as a portfolio project for a Data Analyst / Business 
 
 # 🚀 Live Demo
 
-https://YOUR_USERNAME.github.io/ecommerce-sales-dashboard/
+https://adityyakusuma.github.io/ecommerce-sales-dashboard/
 
 ---
 
@@ -26,16 +26,6 @@ https://YOUR_USERNAME.github.io/ecommerce-sales-dashboard/
 ✅ Export Dashboard to PDF  
 ✅ Responsive Design  
 ✅ Sidebar Navigation  
-
----
-
-# 📷 Dashboard Preview
-
-## Dark Mode
-(Add screenshot here)
-
-## Light Mode
-(Add screenshot here)
 
 ---
 
