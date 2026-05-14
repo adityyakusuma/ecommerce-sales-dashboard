@@ -53,6 +53,9 @@ body {
     margin-left: 240px;
     padding: 30px;
     width: calc(100% - 240px);
+    background: #0f172a;
+    min-height: 100vh;
+    display: block;
 }
 
 .header {
@@ -669,4 +672,8 @@ body.light-mode .date-filter input[type="date"]:focus {
 .charts {
     display: grid;
     grid-template-columns: 2fr 1fr;
+}
+
+body.light-mode .main-content {
+    background: #f4f6f9;
 }
