@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Commerce Sales Dashboard</title>
+
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>Dashboard</h2>
+
+        <ul>
+            <li data-target="overviewSection">Overview</li>
+            <li data-target="salesSection">Sales</li>
+            <li data-target="customersSection">Customers</li>
+            <li data-target="productsSection">Products</li>
+            <li data-target="analyticsSection">Analytics</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+
+        <div class="header">
+            <div>
+                <h1>E-Commerce Sales Analytics</h1>
+                <p>Monitor your business performance</p>
+            </div>
+
+            <div class="header-actions">
+                <button id="exportPDF" class="export-btn">📄 Export PDF</button>
+                <button id="themeToggle" class="theme-toggle">☀️ Light Mode</button>
+            </div>
+        </div>
+
+        <div class="cards" id="overviewSection">
+            <div class="card">
+                <h3>Total Revenue</h3>
+                <p id="totalRevenue">Rp 0</p>
+            </div>
+
+            <div class="card">
+                <h3>Total Orders</h3>
+                <p id="totalOrders">0</p>
+            </div>
+
+            <div class="card">
+                <h3>Total Customers</h3>
+                <p id="totalCustomers">0</p>
+            </div>
+
+            <div class="card">
+                <h3>Top Product</h3>
+                <p id="topProduct">-</p>
+            </div>
+        </div>
+
+        <div class="charts" id="salesSection">
+            <div class="chart-card">
+                <h3>Monthly Sales</h3>
+                <canvas id="salesChart"></canvas>
+            </div>
+
+            <div class="chart-card">
+                <h3>Category Distribution</h3>
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+
+        <div class="insight-section" id="analyticsSection">
+            <h3>Business Insights</h3>
+            <div id="insightList" class="insight-list"></div>
+        </div>
+
+        <div class="top-customers-section" id="customersSection">
+            <h3>Top Customers</h3>
+            <div id="topCustomersList" class="top-customers-list"></div>
+        </div>
+
+        <div class="table-section" id="productsSection">
+            <div class="table-header">
+                <h3>Recent Transactions</h3>
+
+                <div class="filters">
+                    <input type="file" id="csvUpload" accept=".csv">
+
+                    <div class="date-filter">
+                        <label>Start Date</label>
+                        <input type="date" id="startDate">
+                    </div>
+
+                    <div class="date-filter">
+                        <label>End Date</label>
+                        <input type="date" id="endDate">
+                    </div>
+
+                    <select id="categoryFilter">
+                        <option value="All">All Categories</option>
+                    </select>
+
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Search customer or product..."
+                    >
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Date</th>
+                        <th>Customer</th>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="script.js"></script>
+
+</body>
+</html>
