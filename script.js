@@ -421,9 +421,10 @@ async function exportDashboardPDF() {
     const dashboard = document.querySelector(".main-content");
 
     const canvas = await html2canvas(dashboard, {
-        scale: 2,
-        useCORS: true
-    });
+    scale: 2,
+    useCORS: true,
+    backgroundColor: currentTheme === "light" ? "#f4f6f9" : "#0f172a"
+});
 
     const imgData = canvas.toDataURL("image/png");
 
